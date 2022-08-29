@@ -1,0 +1,17 @@
+{
+    "name": "03-node-bases",
+    "version": "0.0.1",
+    "description": "It's a simple multiplication table",
+    "main": "app.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "base3": "node app --base=3"
+    },
+    "author": "Santa",
+    "license": "MIT",
+    "type": "module",
+    "dependencies": {
+        "colors": "^1.4.0",
+        "yargs": "^17.5.1"
+    }
+}
