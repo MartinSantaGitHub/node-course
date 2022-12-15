@@ -106,3 +106,5 @@ dist
 *.txt
 
 .DS_Store
+.vscode/
+

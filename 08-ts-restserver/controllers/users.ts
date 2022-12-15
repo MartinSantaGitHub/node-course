@@ -1,47 +1,121 @@
 import { Request, Response } from "express";
+import dotenv from "dotenv";
+import User from "../models/user";
 
-const getUsers = (req: Request, res: Response) => {
+dotenv.config();
+
+const getUsers = async (req: Request, res: Response) => {
+    const users = await User.findAll();
+
     res.json({
-        msg: "getUsers",
+        users,
     });
 };
 
-const getUser = (req: Request, res: Response) => {
+const getUser = async (req: Request, res: Response) => {
     const { id } = req.params;
+    const user = await User.findByPk(id);
+
+    if (!user) {
+        return res.status(404).json({
+            msg: `User with id ${id} does not exist`,
+        });
+    }
 
     res.json({
-        msg: "getUsers",
-        id,
+        user,
     });
 };
 
-const postUser = (req: Request, res: Response) => {
+const postUser = async (req: Request, res: Response) => {
     const { body } = req;
 
-    res.json({
+    try {
+        const isEmail = await User.findOne({
+            where: {
+                email: body.email,
+            },
+        });
+
+        if (isEmail) {
+            return res.status(400).json({
+                msg: `The email (${body.email}) already exists`,
+            });
+        }
+
+        const user = User.build(body);
+
+        await user.save();
+    } catch (error) {
+        console.log(error);
+
+        return res.status(500).json({
+            msg: "Conctact the Admin for further help",
+        });
+    }
+
+    res.status(201).json({
         msg: "postUser",
         body,
     });
 };
 
-const putUser = (req: Request, res: Response) => {
+const putUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { body } = req;
 
-    res.json({
-        msg: "putUser",
-        id,
-        body,
-    });
+    try {
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({
+                msg: `User with id '${id}' does not exist`,
+            });
+        }
+
+        await user.update({
+            name: body.name,
+        });
+
+        res.json(user);
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+            msg: "Conctact the Admin for further help",
+        });
+    }
 };
 
-const deleteUser = (req: Request, res: Response) => {
+const deleteUser = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    res.json({
-        msg: "deleteUser",
-        id,
-    });
+    try {
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({
+                msg: `User with id '${id}' does not exist`,
+            });
+        }
+
+        if (process.env.DELETE_LOGIC === "LOGICAL") {
+            await user.update({ status: false });
+        } else {
+            await user.destroy();
+        }
+
+        res.json({
+            msg: "User deleted",
+            userInfo: user,
+        });
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+            msg: "Conctact the Admin for further help",
+        });
+    }
 };
 
 export { getUsers, getUser, postUser, putUser, deleteUser };
